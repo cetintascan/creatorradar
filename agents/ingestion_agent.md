@@ -12,7 +12,7 @@ Config single source of truth: `data/tracking_config.yaml` (18 keywords, 5 handl
 
 Manual test 2026-06-26: 144 search + 5 channels + 250 videos → GCS → BQ raw tables ✅
 
-**Pending:** `dags/youtube_ingest.py` — daily DAG at 02:00 UTC. Start here next session.
+**Completed (2026-06-27):** `dags/youtube_ingest.py` — `dag_id="youtube_ingest"`, `schedule="0 2 * * *"`. `fetch_and_upload` → parallel `load_bq_search` + `load_bq_channels` + `load_bq_videos`. BQ load tasks skip silently if GCS file absent. Commit: `d9ba24e`.
 
 ## Handoff from dbt Phase 5 Session (2026-06-27)
 
