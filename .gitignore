@@ -12,3 +12,4 @@ logs/
 google-cloud-sdk/
 google-cloud-cli-*.tar.gz
 dbt_project/target/
+frontend/node_modules/

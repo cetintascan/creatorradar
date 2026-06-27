@@ -6,3 +6,5 @@ tqdm
 pyyaml
 google-cloud-bigquery
 google-cloud-storage
+fastapi
+uvicorn[standard]
