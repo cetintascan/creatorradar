@@ -1,38 +1,56 @@
 # dbt Agent Log
 
+## Session: Phase 5 — Category Intelligence Layer (2026-06-27)
+
+### Completed
+
+**Staging** (`models/staging/`):
+- `stg_youtube_search.sql` — `_keyword` → `topic`, `id.videoId` → `video_id`. Dedup by (video_id, topic, ingested_date). `ingested_date` cast to DATE explicitly.
+
+**Marts** (`models/marts/`):
+- `mart_category_demand_daily.sql` — join `stg_youtube_search` × `int_yt_content_signals` on video_id. One row per (topic, ingested_date). `demand_score = ln(1+total_views) * (1+commerce_intent_density) * (1+sponsor_density)`.
+- `mart_category_trending.sql` — current 7-day vs prior 7-day demand_score. `demand_delta_pct` = % change. Anchors to `max(ingested_date)` in data.
+- `mart_brand_mentions.sql` — UNNEST(20 brands) × CROSS JOIN content, lowercased LIKE match. One row per (brand_name, channel_id). Commit: `b726bbf`.
+
+**DAG** (`dags/`):
+- `transform.py` — ExternalTaskSensor on `youtube_ingest` success → dbt_run_staging → dbt_test_staging → dbt_run_intermediate → dbt_run_marts → dbt_test_marts. `schedule=None` (triggered externally).
+
+### Design note
+`mart_category_demand_daily` uses latest video stats from `int_yt_content_signals` joined to historical search dates. Demand scores reflect current performance of videos surfaced each day — acceptable MVP trade-off.
+
+### Verified
+- `dbt parse --no-partial-parse` — clean, no warnings. Commit: `b726bbf`.
+- **Not yet run against BigQuery** — requires `youtube_ingest` DAG and live data.
+
+### Run command (full pipeline)
+```
+cd /opt/airflow/dbt_project
+dbt run --profiles-dir . --select staging intermediate marts
+dbt test --profiles-dir . --select staging intermediate marts
+```
+
+### Pending (Phase 6)
+- FastAPI backend (`api/`) reading from mart tables
+- `dags/youtube_ingest.py` — daily ingestion DAG (Ingestion Agent scope)
+- End-to-end test with real BigQuery data once `youtube_ingest` DAG is live
+
+---
+
 ## Session: Phase 4 — Commercial Signal Layer (2026-06-27)
 
 ### Completed
 
 **Macros** (`dbt_project/macros/`):
-- `detect_sponsor_signal.sql` — Turkish sponsor keywords (`iş birliği`, `reklam`, `sponsor`, `affiliate`, `indirim kodu`, `kodum`, `trendyol link`, `gratis link`, `watsons link`, `işbirliği`)
-- `detect_commerce_intent.sql` — Turkish commerce intent (`nereden aldım`, `fiyatı`, `link`, `indirim`, `alınır mı`, `muadil`, `gratis`, `watsons`, `trendyol`, `sephora`)
-- `normalize_score.sql` — min-max normalization via BigQuery window functions (`safe_divide`); pass `1` as partition_col for global normalization
+- `detect_sponsor_signal.sql` — Turkish sponsor keywords
+- `detect_commerce_intent.sql` — Turkish commerce intent keywords
+- `normalize_score.sql` — min-max normalization; pass `1` for global normalization
 
 **Intermediate** (`models/intermediate/`):
-- `int_yt_channel_baseline.sql` — 30-day median views per channel (`APPROX_QUANTILES`). Filters to latest `ingested_date` and videos with `published_at >= now - 30d`.
-- `int_yt_content_signals.sql` — per-video signals at latest ingested snapshot: `engagement_rate`, `has_sponsor_signal`, `has_commerce_intent`, `relative_performance` (video views / channel median). Left-joins channel_baseline.
+- `int_yt_channel_baseline.sql` — 30-day median views per channel
+- `int_yt_content_signals.sql` — per-video engagement, sponsor, commerce, relative performance. Bug fix: `coalesce(like_count, 0)` for NULL safety.
 
 **Mart** (`models/marts/`):
-- `mart_creator_profiles.sql` — one row per channel. `commercial_fit_score = 0.40*norm_rel_perf + 0.30*norm_engagement + 0.20*norm_commerce + 0.10*norm_sponsor`. All normalization is global (partition by 1).
+- `mart_creator_profiles.sql` — `commercial_fit_score = 0.40*norm_rel_perf + 0.30*norm_engagement + 0.20*norm_commerce + 0.10*norm_sponsor`
 
 **Tests**:
-- `tests/assert_commercial_fit_score_range.sql` — custom test, returns rows where `commercial_fit_score` is outside [0, 1]
-- `models/intermediate/schema.yml` — `not_null`, `unique`, `accepted_values` on signal booleans
-- `models/marts/schema.yml` — `not_null`, `unique` on `channel_id`; `not_null` on `commercial_fit_score`
-
-### Verified
-- `dbt parse --no-partial-parse` — clean, no warnings. Commit: `b60aa5e`.
-- **Not yet run against BigQuery** — requires live data in `raw_youtube_videos` / `raw_youtube_channels`.
-
-### Run command
-```
-cd /opt/airflow/dbt_project && dbt run --profiles-dir . --select intermediate marts
-dbt test --profiles-dir . --select intermediate marts
-```
-
-### Pending (Phase 5)
-- `mart_category_demand_daily.sql` — daily demand score per topic
-- `mart_category_trending.sql` — 7-day delta (`demand_delta_pct`)
-- `mart_brand_mentions.sql` — brand visibility from `tracking_config.yaml` brand list
-- End-to-end pipeline test (ingestion → staging → intermediate → marts)
+- `tests/assert_commercial_fit_score_range.sql`
