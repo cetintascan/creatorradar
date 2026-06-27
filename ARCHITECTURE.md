@@ -72,13 +72,14 @@ Loads GCS JSON to BigQuery raw tables using batch load jobs (free, no streaming 
 
 ### Directory structure
 ```
-dbt/
+dbt_project/
 ├── dbt_project.yml
 ├── profiles.yml          ← BigQuery connection
 ├── models/
 │   ├── staging/
 │   │   ├── stg_youtube_videos.sql
-│   │   └── stg_youtube_channels.sql
+│   │   ├── stg_youtube_channels.sql
+│   │   └── stg_youtube_search.sql
 │   ├── intermediate/
 │   │   ├── int_yt_channel_baseline.sql
 │   │   └── int_yt_content_signals.sql
@@ -92,8 +93,7 @@ dbt/
 │   ├── detect_commerce_intent.sql
 │   └── normalize_score.sql
 └── tests/
-    ├── assert_demand_score_range.sql
-    └── assert_no_null_topics.sql
+    └── assert_commercial_fit_score_range.sql
 ```
 
 ### Model descriptions
@@ -113,7 +113,7 @@ commercial_fit_score =
 + 0.10 * normalized_sponsor_signal
 ```
 
-**`mart_category_demand_daily`** — one row per topic per day. Aggregates video count, view volume, sponsor density, commerce intent density into a `demand_score`.
+**`mart_category_demand_daily`** — one row per topic per day. LEFT JOIN between `stg_youtube_search` and `int_yt_content_signals` on video_id. `demand_score = ln(1 + video_count) * (1 + commerce_intent_density) * (1 + sponsor_density)`. Uses `video_count` (not `sum(view_count)`) because keyword search results are mostly from non-watchlist channels with no view data.
 
 **`mart_category_trending`** — 7-day delta. Compares current week demand_score to prior week. Output: `demand_delta_pct` used for trending UI.
 
@@ -137,27 +137,37 @@ commercial_fit_score =
 
 FastAPI connected to BigQuery via `google-cloud-bigquery`. All queries use parameterized inputs (`@param` syntax) to prevent injection.
 
+**Location:** `api/` (project root package — `api/main.py`, `api/bq.py`, `api/routers/`)
+
+**Start:** `GOOGLE_APPLICATION_CREDENTIALS=config/gcp-key.json .venv/bin/uvicorn api.main:app --port 8000 --reload`
+
 **Endpoints:**
 
 `GET /api/creators` — `commercial_fit_score` ranked list, optional `?category=` filter
 
-`GET /api/creators/{channel_id}` — full creator signal detail
+`GET /api/creators/{channel_id}` — full creator signal detail + last 30 videos from `int_yt_content_signals`
 
-`GET /api/categories` — yesterday's demand_score by topic
+`GET /api/categories` — latest demand_score by topic from `mart_category_demand_daily`
 
 `GET /api/categories/trending` — 7-day delta, ordered by `demand_delta_pct`
 
-`GET /api/categories/{topic}/creators` — top creators for a specific category
+`GET /api/categories/{topic}/creators` — creators matched via `stg_youtube_search.channel_id`
+
+`GET /api/brands` — brand mention totals from `mart_brand_mentions`
 
 ## Frontend
 
-React + Recharts. Three pages:
+React + Recharts. Three pages.
 
-**Creator leaderboard** — sortable table by `commercial_fit_score`. Filter by category. Click through to creator detail.
+**Location:** `frontend/` (Vite + React)
 
-**Category trends** — bar chart of `demand_score` by topic. Toggle to 7-day delta view. Recharts `BarChart` with `XAxis`, `YAxis`, `Tooltip`.
+**Start:** `cd frontend && npm run dev` — serves at `http://localhost:5173`. Vite proxies `/api/*` → `http://localhost:8000`.
 
-**Creator detail** — single creator view. Video history, signal breakdown, brand mention timeline.
+**Creator leaderboard** (`/`) — table ranked by `commercial_fit_score` with score bar, sponsor/commerce signal dots. Category filter dropdown. Click row → creator detail.
+
+**Category intelligence** (`/categories`) — Recharts `BarChart` of `demand_score` by topic. Toggle to 7-day delta view. Detail table below chart.
+
+**Creator detail** (`/creators/:channelId`) — stat cards (fit score, subscribers, rates), video history table with sponsor/commerce badges.
 
 ## GCP free tier compliance
 

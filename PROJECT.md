@@ -54,27 +54,27 @@ SaaS subscription for agencies. Tiered by number of tracked categories, creator 
 
 ## Implementation roadmap
 
-### Phase 1 — Infrastructure
+### ✅ Phase 1 — Infrastructure
 - GCP project, billing account, BigQuery dataset, GCS bucket
 - Service account and credentials
 - Custom Airflow Docker image (includes dbt-bigquery)
 - docker-compose.yml with Airflow + PostgreSQL (Airflow metadata only)
 - Airflow UI running at localhost:8080
 
-### Phase 2 — Ingestion
+### ✅ Phase 2 — Ingestion
 - `ingestion/youtube_client.py` — channels, videos, search endpoints
 - `ingestion/gcs_uploader.py` — raw JSON to GCS
 - `ingestion/bq_loader.py` — GCS to BigQuery batch load
 - Manual test: raw data visible in BigQuery
-- `dags/youtube_ingest.py` — scheduled daily ingestion DAG
+- `dags/youtube_ingest.py` — scheduled daily ingestion DAG (`schedule="0 2 * * *"`)
 
-### Phase 3 — dbt staging
+### ✅ Phase 3 — dbt staging
 - `dbt init`, `profiles.yml` for BigQuery
-- `stg_youtube_videos.sql`, `stg_youtube_channels.sql`
-- dbt tests: not_null, unique on key fields
-- `dags/transform.py` — triggered after ingestion DAG completes
+- `stg_youtube_videos.sql`, `stg_youtube_channels.sql`, `stg_youtube_search.sql`
+- dbt tests: not_null on all key fields
+- `dags/transform.py` — `schedule="0 4 * * *"`, ExternalTaskSensor on `youtube_ingest`
 
-### Phase 4 — Commercial signal layer
+### ✅ Phase 4 — Commercial signal layer
 - `macros/detect_sponsor_signal.sql` — Turkish sponsor keywords
 - `macros/detect_commerce_intent.sql` — Turkish commerce keywords
 - `macros/normalize_score.sql` — min-max normalization per category
@@ -82,13 +82,14 @@ SaaS subscription for agencies. Tiered by number of tracked categories, creator 
 - `int_yt_content_signals.sql` — per-video signal aggregation
 - `mart_creator_profiles.sql` — `commercial_fit_score` per creator
 
-### Phase 5 — Category intelligence
-- `mart_category_demand_daily.sql` — daily demand score per category
+### ✅ Phase 5 — Category intelligence
+- `mart_category_demand_daily.sql` — daily demand score per category (LEFT JOIN, video_count based)
 - `mart_category_trending.sql` — 7-day delta
 - `mart_brand_mentions.sql` — brand visibility across creator content
-- End-to-end pipeline test
+- End-to-end pipeline test: 32/32 dbt tests pass
 
-### Phase 6 — API and frontend
-- FastAPI backend connected to BigQuery
-- React + Recharts frontend
-- Creator leaderboard, category trend, creator detail pages
+### ✅ Phase 6 — API and frontend
+- `api/` FastAPI package: 7 endpoints connected to BigQuery
+- `frontend/` Vite + React + Recharts
+- Creator leaderboard, category intelligence, creator detail pages
+- Run: `.venv/bin/uvicorn api.main:app --port 8000` + `cd frontend && npm run dev`
