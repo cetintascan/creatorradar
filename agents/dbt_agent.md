@@ -13,7 +13,7 @@
 - `mart_brand_mentions.sql` — UNNEST(20 brands) × CROSS JOIN content, lowercased LIKE match. One row per (brand_name, channel_id). Commit: `b726bbf`.
 
 **DAG** (`dags/`):
-- `transform.py` — ExternalTaskSensor on `youtube_ingest` success → dbt_run_staging → dbt_test_staging → dbt_run_intermediate → dbt_run_marts → dbt_test_marts. `schedule=None` (triggered externally).
+- `transform.py` — `schedule="0 4 * * *"` (04:00 UTC daily). ExternalTaskSensor ile `youtube_ingest` başarısını bekler, sonra dbt_run_staging → dbt_test_staging → dbt_run_intermediate → dbt_run_marts → dbt_test_marts çalışır. Externally triggered değil — kendi schedule'ında çalışır.
 
 ### Design note
 `mart_category_demand_daily` uses latest video stats from `int_yt_content_signals` joined to historical search dates. Demand scores reflect current performance of videos surfaced each day — acceptable MVP trade-off.

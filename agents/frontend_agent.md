@@ -89,10 +89,14 @@ GET /api/categories/trending
   → mart_category_trending ORDER BY demand_delta_pct DESC
 
 GET /api/categories/{topic}/creators
-  → mart_creator_profiles JOIN stg_youtube_search ON channel_id WHERE topic = @topic
+  → ⚠️  stg_youtube_search'te channel_id sütunu YOK — doğrudan join yapılamaz
+  → Gerçek path: mart_creator_profiles.channel_id
+                 → stg_youtube_videos.channel_id + video_id
+                 → stg_youtube_search.video_id WHERE topic = @topic
+  → Alternatif: dbt agent'a mart_topic_creators yaptırılabilir (Phase 6 başında karar ver)
 
 GET /api/creators?category={topic}
-  → mart_creator_profiles JOIN stg_youtube_search ON channel_id WHERE topic = @topic
+  → yukarıdaki aynı join path
   → ORDER BY commercial_fit_score DESC
 
 GET /api/brands
