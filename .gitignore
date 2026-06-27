@@ -11,3 +11,4 @@ logs/
 .DS_Store
 google-cloud-sdk/
 google-cloud-cli-*.tar.gz
+dbt_project/target/
