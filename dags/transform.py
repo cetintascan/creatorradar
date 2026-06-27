@@ -16,7 +16,7 @@ default_args = {
 with DAG(
     dag_id="transform",
     description="dbt staging → intermediate → marts, triggered after youtube_ingest succeeds.",
-    schedule=None,  # triggered by youtube_ingest via TriggerDagRunOperator
+    schedule="0 4 * * *",  # 04:00 UTC daily — 2h after youtube_ingest (02:00 UTC)
     start_date=datetime(2026, 6, 1),
     catchup=False,
     default_args=default_args,
