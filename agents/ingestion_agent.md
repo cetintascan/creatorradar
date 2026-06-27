@@ -21,3 +21,11 @@ Manual test 2026-06-26: 144 search + 5 channels + 250 videos → GCS → BQ raw 
 `youtube_ingest.py` yazılırken **`TriggerDagRunOperator` ekleme** — `transform.py` zaten kendi schedule'ında çalışıp sensor ile bekliyor. İkisi ayrı tutulacak.
 
 `youtube_ingest.py`'da `dag_id="youtube_ingest"` kullanılmalı — sensor tam bu ID'yi izliyor.
+
+## Handoff from Phase 6 Session (2026-06-27)
+
+**Watchlist genişletme önceliği:** `GET /api/creators?category=X` endpoint'i `stg_youtube_search.channel_id` ile watchlist kanallarını eşleştiriyor. Test: 17 keyword topic'inden yalnızca 1'i ("biten ürünler") bir watchlist kanalı videosuyla örtüştü. Bu, 5-kanallı watchlist'in keyword aramasında temsil edilmediğini gösteriyor.
+
+**Etki:** Category → creator bağlantısı anlamlı olmak için `data/tracking_config.yaml`'daki `creator_watchlist` bölümünün genişletilmesi gerekiyor. Her yeni handle eklendiğinde Ingestion Agent bir sonraki çalışmada o kanalın videolarını otomatik çeker.
+
+**Veri durumu:** BQ raw tablolarında 2026-06-26 ve 2026-06-27 verisi mevcut (10 kanal + 500 video + ~288 search satırı). PYTHONPATH sorunu docker-compose.yml'ye `PYTHONPATH: /opt/airflow` eklenerek çözüldü — `youtube_ingest` DAG'ı artık `ingestion` modülünü buluyor.

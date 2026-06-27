@@ -72,3 +72,53 @@ Handles: GCP infrastructure setup, Airflow Docker build/startup, environment var
 - [x] `ingestion/bq_loader.py`
 - [x] `ingestion/discover_videos.py`
 - [x] Manual test: 144 search + 5 channels + 250 videos loaded to BQ (2026-06-26)
+
+### Step 9 — API & Frontend (Phase 6)
+- [x] `api/` FastAPI package (see below)
+- [x] `frontend/` Vite + React app
+- [x] `requirements.txt` updated with `fastapi`, `uvicorn[standard]`
+
+---
+
+## Phase 6 — FastAPI + React (2026-06-27)
+
+### API service
+
+**Location:** `api/` (project root Python package)
+
+**Start command (local):**
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=config/gcp-key.json \
+  .venv/bin/uvicorn api.main:app --port 8000 --reload
+```
+
+Reads `GOOGLE_APPLICATION_CREDENTIALS` from `.env` via `python-dotenv` (loaded in `api/main.py`). Ensure `.env` has the key path relative to the project root: `GOOGLE_APPLICATION_CREDENTIALS=config/gcp-key.json`.
+
+**Endpoints:**
+| Endpoint | Source table |
+|---|---|
+| `GET /api/creators` | `mart_creator_profiles` |
+| `GET /api/creators?category=X` | `mart_creator_profiles` + `stg_youtube_search` |
+| `GET /api/creators/{id}` | `mart_creator_profiles` + `int_yt_content_signals` |
+| `GET /api/categories` | `mart_category_demand_daily` |
+| `GET /api/categories/trending` | `mart_category_trending` |
+| `GET /api/categories/{topic}/creators` | `mart_creator_profiles` + `stg_youtube_search` |
+| `GET /api/brands` | `mart_brand_mentions` |
+
+All queries use BigQuery parameterized inputs (`@param`).
+
+### Frontend service
+
+**Location:** `frontend/` (Vite + React)
+
+**Start command:**
+```bash
+cd frontend && npm run dev   # serves at http://localhost:5173
+```
+
+Vite proxies `/api/*` → `http://localhost:8000` — no CORS issues in dev.
+
+**Pages:** Creator Leaderboard (`/`), Category Intelligence (`/categories`), Creator Detail (`/creators/:channelId`)
+
+### Infrastructure state
+The API is a local service — not containerized. No Docker changes needed. If containerizing in the future, add a `uvicorn` service to `docker-compose.yml` with the same volume/env config as airflow-common.

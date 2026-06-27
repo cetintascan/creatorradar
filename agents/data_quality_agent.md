@@ -55,6 +55,29 @@ Phase 4 ürettiği tablolar izlemeye hazır. İlk `dbt run` sonrasında aşağı
 - `mention_count` = 0 olan satır gelmemeli (GROUP BY zaten filtreler, ama kontrol et)
 - Beklenmedik yüksek mention_count: tek bir kanalın çok fazla bir markayı mention etmesi gerçek mi yoksa keyword çok geniş mi?
 
+---
+
+## Handoff from Phase 6 Session (2026-06-27)
+
+### Pipeline test sonuçları (gerçek BigQuery verisi ile)
+
+**Gözlemlenen değerler (2026-06-27 snapshot):**
+
+| Tablo | Rows | Notlar |
+|---|---|---|
+| `int_yt_content_signals` | 250 | sponsor_rate ≈ %54, commerce_rate ≈ %36 |
+| `mart_creator_profiles` | 5 | score aralığı: 0.32–0.66 ✅ non-trivial dağılım |
+| `mart_category_demand_daily` | 17 | tüm keyword'ler mevcut |
+| `mart_brand_mentions` | ~20 | Sephora 29 mention (5 creator), Maybelline 25 |
+
+**Önemli:** `mart_category_demand_daily.demand_score` artık `video_count` bazlı (eski: `sum(view_count)`). Watchlist kanallarından gelen keyword eşleşmesi son derece seyrek (17 topic'ten yalnızca 1'inde watchlist videosu bulundu). Bu nedenle `total_views`, `avg_engagement_rate`, `sponsor_density`, `commerce_intent_density` sütunları çoğu topic için NULL veya 0 — veri eksikliği değil, mimari sınırlılık.
+
+### İzleme odakları (Phase 6 sonrası)
+
+- `demand_delta_pct` için 14 gün veri biriktiğinde trending anlamlı hale gelir; o ana kadar NULL normal
+- `sponsor_signal_rate` %90+ olan kanal (`@OjemRujumRimelim` ≈ %94) doğru mu? `dbt_agent`'a danış
+- `commerce_intent_rate` düşüklüğü bekleniyor — `link` keyword geneli yakalıyor ancak `gratis`, `watsons`, `trendyol` daha spesifik
+
 ### Run sonrası kontrol sorgusu
 ```sql
 select

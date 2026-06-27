@@ -1,5 +1,40 @@
 # dbt Agent Log
 
+## Session: Phase 6 — Bug Fix & Pipeline Test (2026-06-27)
+
+### Completed
+
+**Test fixes:**
+- Removed `unique` tests on `stg_youtube_channels.channel_id` and `stg_youtube_videos.video_id` — staging keeps all ingested_dates, so channel/video ID is not globally unique. Correct key is (id, ingested_date).
+- Removed `accepted_values` tests on BOOL columns `has_sponsor_signal` / `has_commerce_intent` — BigQuery cannot compare `BOOL IN ('True', 'False')`. `not_null` + BOOL type is sufficient.
+- Result: **32/32 dbt tests pass**.
+
+**`mart_category_demand_daily` fix:**
+- Changed INNER JOIN → LEFT JOIN between `stg_youtube_search` and `int_yt_content_signals`. The INNER JOIN produced only 1 row (only 1 watchlist video appeared in keyword search results). With LEFT JOIN, all 17 keyword topics produce rows.
+- `demand_score` formula changed from `ln(1 + sum(view_count)) * ...` to `ln(1 + count(distinct video_id)) * ...` — view counts are only available for watchlist-channel videos; video_count is a better proxy when most search results are from non-watchlist channels.
+- `mart_category_trending` rebuilt automatically (reads from demand_daily). Now has 17 rows.
+
+**`.gitignore`:** Added `dbt_project/target/` and `frontend/node_modules/`.
+
+### Current model state (all confirmed running against BigQuery)
+
+| Model | Type | Rows | Notes |
+|---|---|---|---|
+| `stg_youtube_channels` | VIEW | 10 (2 dates × 5) | |
+| `stg_youtube_videos` | VIEW | 500 (2 dates × 250) | |
+| `stg_youtube_search` | VIEW | ~288 | deduped by (video_id, topic, ingested_date) |
+| `int_yt_channel_baseline` | TABLE | 5 | 30-day median, latest date only |
+| `int_yt_content_signals` | TABLE | 250 | latest ingested_date only |
+| `mart_creator_profiles` | TABLE | 5 | one row per watchlist channel |
+| `mart_category_demand_daily` | TABLE | 17 | all keyword topics, latest date |
+| `mart_category_trending` | TABLE | 17 | 7-day delta; delta_pct NULL (need 14 days) |
+| `mart_brand_mentions` | TABLE | ~20 | 20 brands × channels with mentions |
+
+### Known limitation
+`mart_category_demand_daily` join to watchlist channel signals is sparse — only 1 watchlist video matched keyword search results. This is expected with 5 channels. With more channels in `tracking_config.yaml`, coverage improves automatically.
+
+---
+
 ## Session: Phase 5 — Category Intelligence Layer (2026-06-27)
 
 ### Completed

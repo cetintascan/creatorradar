@@ -107,3 +107,43 @@ GET /api/brands
 - **Creator leaderboard** — `mart_creator_profiles`, `?category=` filtresi artık aktif
 - **Category trends** — `mart_category_trending` ile bar chart, `demand_delta_pct` toggle
 - **Creator detail** — `mart_brand_mentions` ile marka timeline eklenebilir
+
+---
+
+## Phase 6 — Tamamlandı (2026-06-27)
+
+### Yazılan dosyalar
+
+**FastAPI (`api/`):**
+- `api/main.py` — CORS middleware, router registration, dotenv load
+- `api/bq.py` — BigQuery client + `ref()` helper
+- `api/routers/creators.py` — `/api/creators`, `/api/creators/{id}`
+- `api/routers/categories.py` — `/api/categories`, `/api/categories/trending`, `/api/categories/{topic}/creators`
+- `api/routers/brands.py` — `/api/brands`
+
+**React (`frontend/src/`):**
+- `App.jsx` — BrowserRouter, indigo nav bar, 3 routes
+- `api.js` — minimal fetch wrapper
+- `pages/CreatorLeaderboard.jsx` — skor çubuğu, sinyal dotları, kategori dropdown, satır tıklama → detail
+- `pages/CategoryTrends.jsx` — Recharts BarChart, "Demand Today" / "7-Day Trend" toggle, detay tablosu
+- `pages/CreatorDetail.jsx` — 5 stat kartı, video geçmişi tablosu, sponsor/commerce badge'leri
+
+### Çalışma durumu (2026-06-27 itibarıyla)
+
+| Endpoint | Durum | Notlar |
+|---|---|---|
+| `GET /api/creators` | ✅ Çalışıyor | 5 creator, score 0.32–0.66 |
+| `GET /api/creators?category=X` | ⚠️ Seyrek | Watchlist kanalları keyword aramasında nadiren çıkıyor |
+| `GET /api/creators/{id}` | ✅ Çalışıyor | 30 video, sinyal verileri |
+| `GET /api/categories` | ✅ Çalışıyor | 17 topic, demand_score (video_count bazlı) |
+| `GET /api/categories/trending` | ✅ Çalışıyor | delta_pct NULL (14 gün veri gerekli) |
+| `GET /api/categories/{topic}/creators` | ⚠️ Seyrek | Yukarıdaki ile aynı kısıt |
+| `GET /api/brands` | ✅ Çalışıyor | Sephora, Maybelline, Revolution... |
+
+### ?category= filtresi sınırlılığı
+`/api/creators?category=X` ve `/api/categories/{topic}/creators` endpoint'leri `stg_youtube_search.channel_id` üzerinden watchlist kanallarını buluyor. YouTube keyword araması genel ekosistemden video döndürür — 5 watchlist kanalı bu aramalarda nadiren çıkıyor (test: 17 topic'ten yalnızca "biten ürünler" 1 eşleşme). Daha fazla kanal `tracking_config.yaml`'a eklendiğinde bu otomatik düzelir.
+
+### Gelecek iyileştirmeler (post-MVP)
+- Kategori dropdown "No creators found" yerine "showing top creators (no category match)" fallback gösterebilir
+- `demand_delta_pct` için %14 veri birikince trending chart anlamlı hale gelir
+- Creator detail sayfasına `mart_brand_mentions` marka kartları eklenebilir
