@@ -23,7 +23,7 @@ select
     v.comment_count,
     v.ingested_date,
     safe_divide(
-        v.like_count + v.comment_count,
+        coalesce(v.like_count, 0) + coalesce(v.comment_count, 0),
         nullif(v.view_count, 0)
     )                                                                   as engagement_rate,
     {{ detect_sponsor_signal('v.text_content') }}                       as has_sponsor_signal,
