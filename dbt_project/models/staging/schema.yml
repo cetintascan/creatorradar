@@ -46,3 +46,21 @@ models:
       - name: ingested_date
         data_tests:
           - not_null
+
+  - name: stg_youtube_search
+    description: "Deduplicated search results with keyword-to-video mapping. One row per (video_id, topic, ingested_date)."
+    columns:
+      - name: video_id
+        description: "YouTube video ID returned by the search."
+        data_tests:
+          - not_null
+      - name: topic
+        description: "Discovery keyword (_keyword) that surfaced this video."
+        data_tests:
+          - not_null
+      - name: channel_id
+        data_tests:
+          - not_null
+      - name: ingested_date
+        data_tests:
+          - not_null

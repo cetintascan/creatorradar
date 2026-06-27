@@ -31,3 +31,60 @@ models:
         description: "Weighted commercial fit score [0, 1]."
         data_tests:
           - not_null
+
+  - name: mart_category_demand_daily
+    description: "One row per topic per day. Aggregates video count, view volume, sponsor/commerce density into demand_score."
+    columns:
+      - name: topic
+        description: "Discovery keyword from tracking_config.yaml."
+        data_tests:
+          - not_null
+      - name: ingested_date
+        description: "Date of the keyword search run."
+        data_tests:
+          - not_null
+      - name: video_count
+        description: "Distinct videos surfaced for this topic on this day."
+      - name: total_views
+        description: "Sum of view counts across matched videos."
+      - name: sponsor_density
+        description: "Fraction of videos with a sponsor signal [0, 1]."
+      - name: commerce_intent_density
+        description: "Fraction of videos with commerce intent [0, 1]."
+      - name: demand_score
+        description: "Composite demand score: ln(1+total_views) * (1+commerce_intent_density) * (1+sponsor_density)."
+        data_tests:
+          - not_null
+
+  - name: mart_category_trending
+    description: "One row per topic. Compares current 7-day demand_score to prior 7-day demand_score."
+    columns:
+      - name: topic
+        description: "Discovery keyword from tracking_config.yaml."
+        data_tests:
+          - not_null
+          - unique
+      - name: current_7d_demand
+        description: "Average demand_score over the most recent 7 days."
+      - name: prior_7d_demand
+        description: "Average demand_score over the 7 days preceding the current window."
+      - name: demand_delta_pct
+        description: "Percentage change in demand_score vs prior week. NULL if no prior week data."
+
+  - name: mart_brand_mentions
+    description: "One row per (brand, channel). Brand mention counts detected in video title and description."
+    columns:
+      - name: brand_name
+        description: "Brand name from tracking_config.yaml brand_keywords."
+        data_tests:
+          - not_null
+      - name: channel_id
+        description: "YouTube channel ID."
+        data_tests:
+          - not_null
+      - name: mention_count
+        description: "Number of distinct videos mentioning this brand."
+        data_tests:
+          - not_null
+      - name: latest_mention_date
+        description: "published_at of the most recent video mentioning this brand."
