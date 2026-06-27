@@ -10,15 +10,13 @@ from ingestion.youtube_client import get_channel_by_handle, get_upload_playlist_
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
-CONFIG_DIR = Path(__file__).resolve().parents[1] / "config"
+TRACKING_CONFIG = Path(__file__).resolve().parents[1] / "data" / "tracking_config.yaml"
 
 
 def _load_config() -> tuple[list[str], list[str]]:
-    with open(CONFIG_DIR / "beauty_keywords.yaml", encoding="utf-8") as f:
-        keywords = yaml.safe_load(f)["discovery_keywords"]
-    with open(CONFIG_DIR / "creator_watchlist.yaml", encoding="utf-8") as f:
-        handles = yaml.safe_load(f)["creator_watchlist"]
-    return keywords, handles
+    with open(TRACKING_CONFIG, encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+    return config["discovery_keywords"], config["creator_watchlist"]
 
 
 def run_discovery(run_date: date | None = None) -> dict:
