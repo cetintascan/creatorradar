@@ -1,0 +1,48 @@
+version: 2
+
+sources:
+  - name: raw
+    database: creatorradar-tr
+    schema: creatorradar
+    tables:
+      - name: raw_youtube_channels
+      - name: raw_youtube_videos
+      - name: raw_youtube_search
+
+models:
+  - name: stg_youtube_channels
+    description: "Deduplicated and typed channel records from raw_youtube_channels."
+    columns:
+      - name: channel_id
+        description: "YouTube channel ID (unique per ingested_date)."
+        data_tests:
+          - not_null
+          - unique
+      - name: handle
+        description: "YouTube @handle from creator_watchlist."
+        data_tests:
+          - not_null
+      - name: channel_title
+        data_tests:
+          - not_null
+      - name: ingested_date
+        data_tests:
+          - not_null
+
+  - name: stg_youtube_videos
+    description: "Deduplicated and typed video records from raw_youtube_videos."
+    columns:
+      - name: video_id
+        description: "YouTube video ID (unique per ingested_date)."
+        data_tests:
+          - not_null
+          - unique
+      - name: channel_id
+        data_tests:
+          - not_null
+      - name: video_title
+        data_tests:
+          - not_null
+      - name: ingested_date
+        data_tests:
+          - not_null

@@ -1,0 +1,12 @@
+creatorradar:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: creatorradar-tr
+      dataset: creatorradar
+      keyfile: /opt/airflow/config/gcp-key.json
+      location: us-central1
+      threads: 4
+      timeout_seconds: 300
