@@ -10,13 +10,13 @@ Handles: GCP infrastructure setup, Airflow Docker build/startup, environment var
 
 | Component | Status | Notes |
 |---|---|---|
-| GCP Project | ❌ Pending | Not yet created |
-| Billing Account | ❌ Pending | Must be linked to GCP project |
-| BigQuery Dataset | ❌ Pending | Dataset: `creatorradar` |
-| GCS Bucket | ❌ Pending | Bucket: `creatorradar-raw`, region: `us-central1` |
-| Service Account | ❌ Pending | Needs BQ + GCS IAM roles |
-| Service Account Key | ❌ Pending | JSON key, added to `.env` |
-| `.env` GCP vars | ❌ Pending | `GCP_PROJECT_ID`, `GCS_BUCKET`, `GOOGLE_APPLICATION_CREDENTIALS` |
+| GCP Project | ✅ Done | `creatorradar-tr` |
+| Billing Account | ✅ Done | `01B85D-22AD3C-A5264E` linked |
+| BigQuery Dataset | ✅ Done | `creatorradar-tr:creatorradar`, region `us-central1` |
+| GCS Bucket | ✅ Done | `gs://creatorradar-raw`, region `us-central1` |
+| Service Account | ✅ Done | `creatorradar-sa@creatorradar-tr.iam.gserviceaccount.com` |
+| Service Account Key | ✅ Done | `config/gcp-key.json` (gitignored) |
+| `.env` GCP vars | ✅ Done | `GCP_PROJECT_ID`, `GCS_BUCKET`, `GOOGLE_APPLICATION_CREDENTIALS` set |
 | Docker image | ❌ Pending | Custom Airflow image with dbt-bigquery |
 | docker-compose.yml | ❌ Pending | Airflow + PostgreSQL |
 | Airflow UI | ❌ Pending | localhost:8080 |

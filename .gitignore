@@ -1,4 +1,5 @@
 .env
+config/gcp-key.json
 .venv/
 __pycache__/
 *.pyc
@@ -8,3 +9,5 @@ data/processed/
 logs/
 *.egg-info/
 .DS_Store
+google-cloud-sdk/
+google-cloud-cli-*.tar.gz
