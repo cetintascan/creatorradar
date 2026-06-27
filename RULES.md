@@ -75,7 +75,9 @@ During any session, if a decision or change affects a domain outside the active 
 ⚠️  This affects [Agent Name]. Should we activate it now or note it for the next session?
 ```
 
-At session end, the assistant performs a lightweight cross-agent check: reviewing the session for any updates other agents should know about, and asking whether to apply them before closing.
+At session end, the active agent writes a brief handoff note to any other agent log files that were touched during the session. The note contains only what the next agent needs to know to pick up — not a full log. Detailed logging happens when that agent's own session begins.
+
+**Single-operator rule:** This is a single-person project. There is no separate Orchestrator session. The active agent handles cross-agent handoff notes directly at session end.
 
 ---
 

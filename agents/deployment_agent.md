@@ -43,29 +43,32 @@ Handles: GCP infrastructure setup, Airflow Docker build/startup, environment var
 - [ ] Link billing account
 
 ### Step 2 — Enable APIs
-- [ ] `bigquery.googleapis.com`
-- [ ] `storage.googleapis.com`
-- [ ] `iam.googleapis.com`
+- [x] `bigquery.googleapis.com`
+- [x] `storage.googleapis.com`
+- [x] `iam.googleapis.com`
 
 ### Step 3 — BigQuery
-- [ ] Create dataset: `creatorradar` in region `us-central1`
+- [x] Create dataset: `creatorradar` in region `us-central1`
 
 ### Step 4 — GCS
-- [ ] Create bucket: `creatorradar-raw` in region `us-central1`
-- [ ] Set storage class: Standard
-- [ ] Disable public access
+- [x] Create bucket: `creatorradar-raw` in region `us-central1`
 
 ### Step 5 — Service Account
-- [ ] Create service account: `creatorradar-sa`
-- [ ] Grant roles: `roles/bigquery.dataEditor`, `roles/bigquery.jobUser`, `roles/storage.objectAdmin`
-- [ ] Create and download JSON key
-- [ ] Place key at `config/gcp-key.json` (gitignored)
+- [x] Create service account: `creatorradar-sa`
+- [x] Grant roles: `roles/bigquery.dataEditor`, `roles/bigquery.jobUser`, `roles/storage.objectAdmin`, `roles/storage.legacyBucketReader` (bucket-level)
+- [x] Create and download JSON key at `config/gcp-key.json` (gitignored)
 
 ### Step 6 — Environment Variables
-- [ ] Add to `.env`: `GCP_PROJECT_ID`, `GCS_BUCKET`, `GOOGLE_APPLICATION_CREDENTIALS`
-- [ ] Update `.env.example` with placeholders
+- [x] Add to `.env`: `GCP_PROJECT_ID`, `GCS_BUCKET`, `GOOGLE_APPLICATION_CREDENTIALS`
+- [x] Update `.env.example` with placeholders
 
 ### Step 7 — Docker / Airflow
-- [ ] Write `Dockerfile` (custom Airflow image with dbt-bigquery)
-- [ ] Write `docker-compose.yml` (Airflow + PostgreSQL)
-- [ ] `docker compose up` — verify Airflow UI at localhost:8080
+- [x] Write `Dockerfile` (custom Airflow image with dbt-bigquery)
+- [x] Write `docker-compose.yml` (Airflow + PostgreSQL)
+- [x] Airflow UI live at localhost:8080 (admin/admin)
+
+### Step 8 — Ingestion (Phase 2)
+- [x] `ingestion/gcs_uploader.py`
+- [x] `ingestion/bq_loader.py`
+- [x] `ingestion/discover_videos.py`
+- [x] Manual test: 144 search + 5 channels + 250 videos loaded to BQ (2026-06-26)
