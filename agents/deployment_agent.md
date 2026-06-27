@@ -17,9 +17,9 @@ Handles: GCP infrastructure setup, Airflow Docker build/startup, environment var
 | Service Account | ✅ Done | `creatorradar-sa@creatorradar-tr.iam.gserviceaccount.com` |
 | Service Account Key | ✅ Done | `config/gcp-key.json` (gitignored) |
 | `.env` GCP vars | ✅ Done | `GCP_PROJECT_ID`, `GCS_BUCKET`, `GOOGLE_APPLICATION_CREDENTIALS` set |
-| Docker image | ❌ Pending | Custom Airflow image with dbt-bigquery |
-| docker-compose.yml | ❌ Pending | Airflow + PostgreSQL |
-| Airflow UI | ❌ Pending | localhost:8080 |
+| Docker image | ✅ Done | Airflow 2.9.2 + dbt-bigquery 1.8.2 + google-cloud libs |
+| docker-compose.yml | ✅ Done | Airflow webserver + scheduler + PostgreSQL |
+| Airflow UI | ✅ Done | localhost:8080 (admin/admin) |
 
 ---
 
