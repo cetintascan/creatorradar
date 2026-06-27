@@ -25,7 +25,37 @@ Phase 4 ürettiği tablolar izlemeye hazır. İlk `dbt run` sonrasında aşağı
 ### Önemli not
 `detect_commerce_intent` içindeki `like '%link%'` keyword'ü çok geniş. Gerçek veri gelince intent oranı çok yüksek çıkarsa bu keyword filtreye alınabilir. İlk çalıştırmada gözlemle ve gerekirse `dbt_agent`'ı bildir.
 
-### Run sonrası kontrol sorgusu (BigQuery)
+---
+
+## Handoff from dbt Phase 5 Session (2026-06-27)
+
+### İzlenecek tablolar (Phase 5)
+
+**`stg_youtube_search`**
+- Row count ≈ `raw_youtube_search` satır sayısı (dedup sonrası biraz düşük olabilir)
+- Her satırda `topic` (keyword) ve `video_id` NULL olmamalı — schema testi kapsıyor
+- `topic` değerleri `tracking_config.yaml`'daki 18 keyword ile eşleşmeli; farklı bir değer varsa ingestion'da sorun var
+
+**`mart_category_demand_daily`**
+- Her aktif keyword için veri olmalı; eksik keyword varsa o gün arama yapılmamış veya 0 sonuç dönmüş
+- `demand_score` > 0 olmalı — 0 çıkarsa `total_views` sıfır (video bulunmuş ama view yok) veya join başarısız
+- (topic, ingested_date) kombinasyonu unique olmalı — GROUP BY garantiliyor ama composite test yok, anomali şüphesinde elle kontrol:
+  ```sql
+  select topic, ingested_date, count(*) as cnt
+  from `creatorradar-tr.creatorradar.mart_category_demand_daily`
+  group by 1,2 having cnt > 1
+  ```
+
+**`mart_category_trending`**
+- `demand_delta_pct` NULL olan topic'ler = geçen hafta veri yok (yeni keyword veya bootstrap); beklenen durum
+- `demand_delta_pct` > +200% veya < -80% gibi uç değerler anomali sinyali — gerçek mi yoksa veri eksikliği mi kontrol et
+
+**`mart_brand_mentions`**
+- 20 marka × 5 kanal = maksimum 100 satır; gerçekte çok daha az (her kanal her markayı mention etmez)
+- `mention_count` = 0 olan satır gelmemeli (GROUP BY zaten filtreler, ama kontrol et)
+- Beklenmedik yüksek mention_count: tek bir kanalın çok fazla bir markayı mention etmesi gerçek mi yoksa keyword çok geniş mi?
+
+### Run sonrası kontrol sorgusu
 ```sql
 select
   count(*) as total_videos,
