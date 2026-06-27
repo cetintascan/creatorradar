@@ -8,6 +8,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__WEBSERVER__SECRET_KEY: 'creatorradar-secret-key'
     GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/config/gcp-key.json
+    PYTHONPATH: /opt/airflow
   env_file:
     - .env
   volumes:
