@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: int_yt_channel_baseline
+    description: "30-day channel baseline: median and average views for videos published in the last 30 days."
+    columns:
+      - name: channel_id
+        description: "YouTube channel ID."
+        data_tests:
+          - not_null
+          - unique
+      - name: median_view_count
+        description: "Median view count across videos published in the last 30 days."
+        data_tests:
+          - not_null
+      - name: video_count_30d
+        description: "Number of videos published in the last 30 days with non-null view counts."
+
+  - name: int_yt_content_signals
+    description: "Per-video engagement rate, sponsor signal, commerce intent, and relative performance against channel baseline."
+    columns:
+      - name: video_id
+        description: "YouTube video ID."
+        data_tests:
+          - not_null
+          - unique
+      - name: channel_id
+        data_tests:
+          - not_null
+      - name: has_sponsor_signal
+        description: "True if title or description contains Turkish sponsor/partnership keywords."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+      - name: has_commerce_intent
+        description: "True if title or description contains Turkish commerce intent keywords."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+      - name: engagement_rate
+        description: "(like_count + comment_count) / view_count. NULL when view_count is 0."
+      - name: relative_performance
+        description: "video view_count / channel median_view_count. NULL when baseline is unavailable."

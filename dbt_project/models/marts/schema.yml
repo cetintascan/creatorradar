@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: mart_creator_profiles
+    description: >
+      One row per channel. Creator-level aggregation of engagement, sponsor signals, and commerce intent.
+      commercial_fit_score = 0.40*relative_performance + 0.30*engagement_rate + 0.20*commerce_intent + 0.10*sponsor_signal (all min-max normalized globally).
+    columns:
+      - name: channel_id
+        description: "YouTube channel ID."
+        data_tests:
+          - not_null
+          - unique
+      - name: handle
+        description: "YouTube @handle."
+      - name: channel_title
+        description: "Channel display name."
+      - name: subscriber_count
+        description: "Subscriber count at latest ingestion."
+      - name: video_count
+        description: "Total videos in the latest ingestion snapshot."
+      - name: avg_engagement_rate
+        description: "Mean (likes + comments) / views across all videos."
+      - name: avg_relative_performance
+        description: "Mean video views / channel 30-day median views."
+      - name: sponsor_signal_rate
+        description: "Fraction of videos with a detected sponsor signal [0, 1]."
+      - name: commerce_intent_rate
+        description: "Fraction of videos with a detected commerce intent signal [0, 1]."
+      - name: commercial_fit_score
+        description: "Weighted commercial fit score [0, 1]."
+        data_tests:
+          - not_null
