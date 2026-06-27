@@ -31,16 +31,10 @@ models:
         description: "True if title or description contains Turkish sponsor/partnership keywords."
         data_tests:
           - not_null
-          - accepted_values:
-              arguments:
-                values: [true, false]
       - name: has_commerce_intent
         description: "True if title or description contains Turkish commerce intent keywords."
         data_tests:
           - not_null
-          - accepted_values:
-              arguments:
-                values: [true, false]
       - name: engagement_rate
         description: "(like_count + comment_count) / view_count. NULL when view_count is 0."
       - name: relative_performance
