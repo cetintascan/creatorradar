@@ -16,9 +16,10 @@ default_args = {
 with DAG(
     dag_id="transform",
     description="dbt staging → intermediate → marts, triggered after youtube_ingest succeeds.",
-    schedule="0 4 * * *",  # 04:00 UTC daily — 2h after youtube_ingest (02:00 UTC)
-    start_date=datetime(2026, 6, 1),
-    catchup=False,
+    schedule="0 8 * * *",  # 08:00 UTC = 11:00 Turkey — 2h after youtube_ingest
+    start_date=datetime(2026, 6, 29),
+    catchup=True,
+    max_active_runs=1,
     default_args=default_args,
     tags=["dbt", "transform"],
 ) as dag:
@@ -28,7 +29,7 @@ with DAG(
         external_dag_id="youtube_ingest",
         external_task_id=None,  # wait for the whole DAG
         allowed_states=["success"],
-        execution_delta=timedelta(hours=2),  # ingest runs at 02:00, transform at 04:00
+        execution_delta=timedelta(hours=2),  # ingest runs at 06:00, transform at 08:00
         timeout=3600,
         poke_interval=60,
         mode="reschedule",

@@ -42,9 +42,10 @@ def _load_bq(entity: str, filename: str, ds: str, **_) -> int:
 with DAG(
     dag_id="youtube_ingest",
     description="Daily YouTube ingestion: fetch channels, videos, search → GCS → BigQuery.",
-    schedule="0 2 * * *",
-    start_date=datetime(2026, 6, 1),
-    catchup=False,
+    schedule="0 6 * * *",  # 06:00 UTC = 09:00 Turkey — runs on computer startup if missed
+    start_date=datetime(2026, 6, 29),
+    catchup=True,
+    max_active_runs=1,
     default_args=default_args,
     tags=["ingestion", "youtube"],
 ) as dag:
