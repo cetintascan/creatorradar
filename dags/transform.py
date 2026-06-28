@@ -28,6 +28,7 @@ with DAG(
         external_dag_id="youtube_ingest",
         external_task_id=None,  # wait for the whole DAG
         allowed_states=["success"],
+        execution_delta=timedelta(hours=2),  # ingest runs at 02:00, transform at 04:00
         timeout=3600,
         poke_interval=60,
         mode="reschedule",
