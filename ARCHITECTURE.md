@@ -32,12 +32,12 @@ React + Recharts (frontend)
 
 Two DAGs, separated by responsibility:
 
-**`youtube_ingest.py`** — runs daily at 02:00 UTC
+**`youtube_ingest.py`** — runs daily at 06:00 UTC (09:00 Turkey). `catchup=True`, `max_active_runs=1` — runs on startup if missed.
 ```
 fetch_channels → fetch_videos → fetch_discovery → upload_to_gcs → load_to_bq
 ```
 
-**`transform.py`** — triggered on success of `youtube_ingest`
+**`transform.py`** — runs daily at 08:00 UTC (11:00 Turkey). `catchup=True`, `max_active_runs=1`. ExternalTaskSensor waits for `youtube_ingest` success (`execution_delta=2h`).
 ```
 dbt_run_staging → dbt_test_staging → dbt_run_intermediate → dbt_run_marts → dbt_test_marts
 ```

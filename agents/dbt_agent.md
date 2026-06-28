@@ -1,5 +1,23 @@
 # dbt Agent Log
 
+## Session: Pipeline Debug & First Successful Airflow Run (2026-06-28)
+
+### Completed
+
+**`transform` DAG fix — ExternalTaskSensor `execution_delta`:**
+- Sorun: `ExternalTaskSensor` varsayılan olarak aynı `execution_date`'e sahip bir `youtube_ingest` run'ı arıyordu — execution_date'ler hiçbir zaman eşleşmiyordu.
+- Fix: `execution_delta=timedelta(hours=2)` eklendi. Sensor artık 2 saat önceki ingest run'ını arıyor. Commit: `2de89bc`.
+
+**Schedule güncellendi (2026-06-28):** `schedule="0 8 * * *"` (08:00 UTC = 11:00 Turkey). `catchup=True`, `max_active_runs=1`, `start_date=2026-06-29`. `execution_delta=timedelta(hours=2)` korundu (ingest 06:00, transform 08:00). Commit: `e4f5eef`.
+
+**İlk başarılı end-to-end Airflow pipeline (2026-06-28):**
+- `wait_for_ingest` → `dbt_run_staging` → `dbt_test_staging` → `dbt_run_intermediate` → `dbt_run_marts` → `dbt_test_marts` — 6/6 success.
+- Bu run için sensor `execution_delta` fix'i öncesinde tetiklendi, manuel olarak `mark-success` ile geçirildi.
+
+**Not:** `transform` DAG de pause'luydu ama bu session'da unpaused. Scheduled run'larda artık `execution_delta` ile doğru çalışacak.
+
+---
+
 ## Session: Phase 6 — Bug Fix & Pipeline Test (2026-06-27)
 
 ### Completed
