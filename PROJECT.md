@@ -66,13 +66,13 @@ SaaS subscription for agencies. Tiered by number of tracked categories, creator 
 - `ingestion/gcs_uploader.py` — raw JSON to GCS
 - `ingestion/bq_loader.py` — GCS to BigQuery batch load
 - Manual test: raw data visible in BigQuery
-- `dags/youtube_ingest.py` — scheduled daily ingestion DAG (`schedule="0 2 * * *"`)
+- `dags/youtube_ingest.py` — scheduled daily ingestion DAG (`schedule="0 6 * * *"`, 09:00 Turkey, `catchup=True`)
 
 ### ✅ Phase 3 — dbt staging
 - `dbt init`, `profiles.yml` for BigQuery
 - `stg_youtube_videos.sql`, `stg_youtube_channels.sql`, `stg_youtube_search.sql`
 - dbt tests: not_null on all key fields
-- `dags/transform.py` — `schedule="0 4 * * *"`, ExternalTaskSensor on `youtube_ingest`
+- `dags/transform.py` — `schedule="0 8 * * *"` (11:00 Turkey, `catchup=True`), ExternalTaskSensor on `youtube_ingest`
 
 ### ✅ Phase 4 — Commercial signal layer
 - `macros/detect_sponsor_signal.sql` — Turkish sponsor keywords
